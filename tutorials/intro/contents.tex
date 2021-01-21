@@ -56,6 +56,86 @@
 \end{frame}
 
 
+\section{Länkad lista}
+
+\begin{frame}[fragile]
+  \begin{block}{Länkad lista}
+    \begin{itemize}
+      \item Noder som innehåller element och pekar på varandra.
+      \item Första element, pekar på andra, o.s.v.
+    \end{itemize}
+  \end{block}
+
+  \pause
+
+  \inputminted{python}{src/node.py}
+\end{frame}
+
+\begin{frame}
+  \begin{exercise}[Länkad lista]
+    Rita en bild och (efter att ni ritat) skriv kod som
+    \begin{enumerate}
+      \item lägger in en ny nod i en tom lista.
+      \item lägger in en ny nod sist i en lista med en nod.
+      \item lägger in en ny nod först i en lista med en nod.
+      \item tar bort den första noden från en lista med två noder.
+      \item tar bort den sista noden från en lista med två noder.
+    \end{enumerate}
+  \end{exercise}
+
+  \only<2>{
+  \begin{question}
+    \begin{itemize}
+      \item Vilka två bildar en kö?
+      \item Vilka två operationer ovan bildar en stack?
+    \end{itemize}
+  \end{question}
+}
+\end{frame}
+
+\subsection{Stack och kö}
+
+\begin{frame}
+  \begin{exercise}[Olika köer]
+    Skriv en klass för
+    \begin{enumerate}
+      \item en FIFO-kö (kö),
+      \item en LIFO-kö (stack),
+    \end{enumerate}
+    med en länkad lista som intern datastruktur.
+  \end{exercise}
+\end{frame}
+
+\subsection{Knepiga listor}
+
+\begin{frame}[fragile]
+  \begin{exercise}
+    Beta försöker lära sig hantera länkade listor under lovet. Det är inte 
+    lätt. Givet följande listor:
+    \begin{minted}{text}
+      p  ->  A -> B -> C -> D
+      q  ->  E -> F -> G
+    \end{minted}
+    \begin{enumerate}
+      \item Hur ser listan/listorna ut efter följande rader kod?
+        \begin{minted}{python}
+          z = p.next
+          p.next = q.next
+          z.next.next = p
+          q = p = z
+        \end{minted}
+
+      \item Hur skulle det ha sett ut om man istället skrivit följande rader 
+        kod?
+        \begin{minted}{python}
+          p.next.next.next = q.next.next
+          q.next = p
+          p = q
+        \end{minted}
+    \end{enumerate}
+  \end{exercise}
+\end{frame}
+
 \section[Abstrakt datatyp]{Abstrakt datatyp för temperatur}
 
 \begin{frame}
@@ -93,49 +173,6 @@
         ta med?
     \end{itemize}
   \end{question}
-\end{frame}
-
-
-\section[Stack, länkad lista]{Stack implementerad med länkad lista}
-
-\begin{frame}
-  \begin{exercise}[Stack]
-    \begin{itemize}
-      \item Rita bilder som visar hur det ser ut när man lägger in ett nytt 
-        element i stacken.
-      \item Rita bilder som visar hur det ser ut när man tar bort ett element 
-        från stacken.
-      \item Rita bilder som visar en länkad lista.
-    \end{itemize}
-  \end{exercise}
-\end{frame}
-
-\begin{frame}
-  \begin{figure}
-    \includegraphics[height=0.8\textheight]{fig/lifo-stack.png}
-    \caption{En stack, d.v.s.\ en sist-in-först-ut-kö.}
-  \end{figure}
-\end{frame}
-
-\begin{frame}
-  \begin{figure}
-    \includegraphics[width=\columnwidth]{fig/linked-list.png}
-    \caption{En länkad lista.}
-  \end{figure}
-\end{frame}
-
-\begin{frame}
-  \begin{exercise}[Länkad lista]
-    \begin{itemize}
-      \item Skriv en klass för noder i en länkad lista.
-      \item Skriv en klass för stackar med hjälp av nodeklassen.
-    \end{itemize}
-  \end{exercise}
-\end{frame}
-
-\begin{frame}[fragile]
-  \texttt{stack.py}\hrulefill
-  \inputminted{python}{src/stack.py}
 \end{frame}
 
 
@@ -220,7 +257,7 @@
       Du kan förutsätta att alla kolumner och rader är helt fyllda, men antalet 
       kolumner, m, behöver inte vara detsamma som antal rader, n. Till exempel 
       kan det finnas fem rader men bara tre kolumner.
-      
+
       Visa sedan hur din algoritm fungerar för exemplet ovan.
 
       Utred till sist vilken komplexitet din algoritm har!
