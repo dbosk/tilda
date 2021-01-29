@@ -1,0 +1,155 @@
+\mode*
+
+\section{Körtider}
+
+\begin{frame}
+  \begin{exercise}
+    \begin{itemize}
+      \item En viss algoritm tar 0.5 ms när antal indata är 100.
+      \item Hur lång kommer körtiden att bli när antal indata är 500 om man vet 
+        att körtiden är:
+        \begin{enumerate}
+          \item linjär, \(O(N)\);
+          \item \(O(N \log N)\);
+          \item kvadratisk, \(O(N^2)\);
+          \item kubisk, \(O(N^3)\)?
+        \end{enumerate}
+    \end{itemize}
+  \end{exercise}
+\end{frame}
+
+\begin{frame}
+  \begin{exercise}[Tidstentan, nivå E]
+    \begin{itemize}
+      \item Antalet binära strängar av längd~\(n\) är \(2^n\).
+      \item Antalet alfanumeriska (ca 32 olika tecken) strängar av längd~\(m\) 
+        är \(32^m\).
+    \end{itemize}
+    \begin{enumerate}
+      \item Vad blir uttrycken ovan om \(n=10\) och \(m=3\)?
+      \item Hur mycket större än \(m\) måste \(n\) vara för att det första 
+        uttrycket ska bli större än det andra?
+        (Varför?)
+    \end{enumerate}
+  \end{exercise}
+\end{frame}
+
+\begin{frame}
+  \begin{exercise}[Tidstentan, nivå C]
+    \begin{itemize}
+      \item Linda berättar för Alexander att hon bytt till ett lösenord med 45 
+        binära siffror.
+      \item \enquote{Men herregud!}, säger Alexander, \enquote{det blir ju 
+          alldeles för lätt att knäcka. Själv har jag 9 alfanumeriska tecken i 
+        mitt.}
+    \end{itemize}
+    \begin{enumerate}
+      \item Vems lösenord är svårast att knäcka med totalsökning? (Varför?)
+      \item Ungefär hur många sekunder tar knäckningen om datorn prövar en 
+        miljard lösenord i sekunden? (Varför?)
+    \end{enumerate}
+  \end{exercise}
+\end{frame}
+
+
+\section{Rekursion}
+
+\begin{frame}
+  \begin{exercise}[GCD/SGD]
+    \begin{itemize}
+      \item För att beräkna största faktorn som två tal m och n har gemensamt 
+        kan vi använda Euklides algoritm.
+      \item Om \(m\) är jämnt delbart med \(n\) så är \(n\) den största 
+        gemensamma faktorn.
+        Annars är \(GCD(m, n) = GCD(n, m\mod n)\).
+    \end{itemize}
+    \begin{enumerate}
+      \item Skriv en rekursiv funktion!
+    \end{enumerate}
+  \end{exercise}
+\end{frame}
+
+\begin{frame}[fragile]
+  \begin{solution}
+    \inputminted{python}{src/gcd.py}
+  \end{solution}
+\end{frame}
+
+\begin{frame}
+  \begin{exercise}[Fibonacci]
+    \begin{itemize}
+      \item Leonardo Fibonacci skrev år 1225 en bok där han beskrev denna 
+        intressanta talföljd för kaninpars förökning.
+      \item \(f(0) = 0, f(1) = 1, f(n) = f(n-1)+f(n-2)\)
+    \end{itemize}
+    \begin{enumerate}
+      \item Skriv en rekursiv funktion för att beräkna Fibonaccital.
+      \item Visa vilka rekursiva anrop den ger upphov till vid beräkningen av 
+        f(5).
+      \item Är det här det effektivaste sättet att beräkna Fibonaccitalen?
+    \end{enumerate}
+  \end{exercise}
+\end{frame}
+
+\begin{frame}[fragile]
+  \begin{solution}[Rekursiv Fibonacci]
+    \inputminted{python}{src/fib.py}
+  \end{solution}
+\end{frame}
+
+\begin{frame}[fragile]
+  \begin{solution}[Rekursiv Fibonacci med utskrift]
+    \inputminted{python}{src/fib_print.py}
+  \end{solution}
+\end{frame}
+
+\begin{frame}[fragile]
+  \begin{solution}[Effektivare Fibonacci]
+    \inputminted{python}{src/fib_efficient.py}
+  \end{solution}
+\end{frame}
+
+\section{Binära sökträd}
+
+\begin{frame}
+  \begin{exercise}
+    \begin{itemize}
+      \item Skriv ihop (rekursiv) pseudokod\footnote{%
+          Ja, ni får skriva i Python också.
+        } för att sätta in ett element i ett binärsökträd.
+    \end{itemize}
+    \begin{enumerate}
+      \item Hur ser det binärträd ut som skapas om man puttar in talen 4 2 1 6 
+        3 7 5 i denna ordning?
+      \item Och hur ser det ut om man sätter in dom i omvänd ordning, alltså 5 
+        7 3 6 1 2 4?
+      \item Är de balanserade?
+    \end{enumerate}
+  \end{exercise}
+\end{frame}
+
+\begin{frame}
+  \begin{solution}
+    \inputminted[firstline=22,lastline=34]{python}{src/bst.py}
+  \end{solution}
+\end{frame}
+
+\begin{frame}
+  \begin{exercise}
+    \begin{itemize}
+      \item Skriv en \emph{rekursiv} funktion som
+        \begin{enumerate}
+          \item skriver ut ett träd i inordning.
+          \item skriver ut ett träd i preordning.
+          \item skriver ut ett träd i postordning.
+        \end{enumerate}
+    \end{itemize}
+  \end{exercise}
+\end{frame}
+
+\begin{frame}[fragile]
+  \begin{solution}
+    \inputminted[firstline=45,lastline=61]{python}{src/bst.py}
+  \end{solution}
+\end{frame}
+
