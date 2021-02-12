@@ -1,0 +1,210 @@
+\mode*
+
+\section{Tentafrågor}
+% Denna sektion tar ~35 minuter att gå igenom
+
+\begin{frame}
+  \begin{exercise}
+    \begin{itemize}
+      \item En miljon dumbolotter säljs var månad.
+      \item För varje lott sparas lottnumret och köparen i ett objekt.
+      \item En lista med en miljon objekt finns alltså i datorn vid dragningen, 
+        då tusen vinstnummer slumpas fram, ett efter ett.
+      \item För varje nummer måste hela listan letas igenom, eftersom den är 
+        osorterad.
+    \end{itemize}
+    \begin{enumerate}
+      \item Hur många jämförelser får man räkna med totalt? Lönar det sej att 
+        först sortera listan?
+    \end{enumerate}
+  \end{exercise}
+\end{frame}
+
+\begin{frame}
+  \begin{exercise}
+    \begin{enumerate}
+      \item Hur många jämförelser får man räkna med totalt? Lönar det sej att 
+        först sortera listan?
+    \end{enumerate}
+  \end{exercise}
+
+  \begin{solution}
+    \begin{itemize}
+      \item Ja. I en osorterad lista krävs cirka en halv miljon jämförelser för 
+        varje sökning, d.v.s.\ totalt en halv miljard.
+      \item \({\color{red}\frac{1}{2}}\cdot 1\,000\,000\) jämförelser för varje 
+        vinstnummer, \(1000\) vinstnummer, totalt \(0.5\cdot 10^{9}\).
+      \item Quicksort kräver \(O(N\log N)\) jämförelser.
+      \item \(1\,000\,000\cdot \log_{\color{red}2} 1\,000\,000 = 10^6\cdot 
+        6\log_2 
+            10 \approx 18\cdot 10^6\)
+      \item Varje binärsökning tar \(O(\log N)\).
+      \item Detta ger \(\log_{\color{red}2} 10^6\approx 18\) per vinstnummer, 
+        \(18\cdot 1000\) totalt.
+    \end{itemize}
+  \end{solution}
+\end{frame}
+
+\begin{frame}
+  \begin{exercise}
+    \begin{itemize}
+      \item Höjdhoppsfederationens databas över världens alla 
+        höjdhoppstävlingsresultat består av objekt med bland annat fälten 
+        datum, plats, höjd (cm), hoppare och rivit/klarat.
+      \item På skivminnet ligger objekten i datumordning, men man vill sortera 
+        om dom i resultatordning, nämligen klarade hopp före rivna och höga 
+        hopp före låga.
+    \end{itemize}
+    \begin{enumerate}
+      \item Vilken sorteringsmetod är bäst? Motivera utförligt.
+    \end{enumerate}
+  \end{exercise}
+\end{frame}
+
+\begin{frame}
+  \begin{exercise}
+    \begin{enumerate}
+      \item Vilken sorteringsmetod är bäst? Motivera utförligt.
+    \end{enumerate}
+  \end{exercise}
+
+  \begin{solution}
+    \begin{itemize}
+      \item Väldigt många hopp totalt.
+      \item Men varje hopp är bara mellan \si{100} och \SI{300}{\centi\metre}.
+      \item Antalet hopp är många fler än möjliga hoppvärden, då är 
+        distributionsräkning bästa sorteringsalgoritm.
+      \item Rivit/klarat fördubblar antalet möjliga värden.
+    \end{itemize}
+  \end{solution}
+\end{frame}
+
+\begin{frame}
+  \begin{solution}[Fortsättning, algoritmen]
+    \begin{itemize}
+      \item Läs igenom filen två gånger.
+      \item Första gången för att räkna hur många hopp det finns av varje 
+        rivit/klarat plus höjd.
+      \item Avsätt lagom stort segment av listan för varje objekt.
+      \item Vid andra genomläsningen av filen kan varje hopp sättas in på rätt 
+        ställe i listan.
+    \end{itemize}
+  \end{solution}
+\end{frame}
+
+\begin{frame}
+  \begin{exercise}
+    \begin{itemize}
+      \item För att kontrollera sanningen i detta talesätt har man i en fil 
+        samlat tre miljoner datum för svenska julgranars utkastning.
+      \item Man vill veta mediandatum, alltså det datum då hälften av granarna 
+        slängts ut, ut, ut och hälften ännu står gröna och granna i stugan.
+    \end{itemize}
+    \begin{enumerate}
+      \item Rangordna följande sex föreslagna metoder efter deras effektivitet:
+        \begin{itemize}
+          \item binärsökning,
+          \item hashning,
+          \item insättningssortering,
+          \item distributionsräkning,
+          \item djupet-först-sökning,
+          \item trappsortering (heap sort).
+        \end{itemize}
+    \end{enumerate}
+  \end{exercise}
+\end{frame}
+
+\begin{frame}
+  \begin{remark}
+    \begin{itemize}
+      \item Det finns 365 olika datum på året.
+      \item Vi har tre miljoner datum för när julgranen åkte ut.
+    \end{itemize}
+  \end{remark}
+  \begin{solution}
+    \begin{itemize}
+      \item Observationen ovan gör att distributionsräkning är bäst, \(O(N)\).
+      \item Trappsortering (heap sort) är näst bäst, \(O(N\log N)\), då man kan 
+        avbryta när hälften är sorterade.
+      \item Insättningssortering funkar också, \(O(N^2)\).
+      \item Hashning går att använda om hashfunktionen inte ger krockar.
+      \item Binärsökning och djupet-först-sökning går inte att använda för att 
+        hitta medianen.
+    \end{itemize}
+  \end{solution}
+\end{frame}
+
+\begin{frame}
+  \begin{exercise}
+    \begin{itemize}
+      \item Riksskatteverkets databas med nio miljoner svenskar finns sorterad 
+        på efternamn.
+      \item Man vill sortera om den på personnummer.
+    \end{itemize}
+    \begin{enumerate}
+      \item Hur många jämförelser krävs med quicksort?
+      \item Hur många med den bästa metoden?
+    \end{enumerate}
+  \end{exercise}
+\end{frame}
+
+\begin{frame}
+  \begin{exercise}
+    \begin{enumerate}
+      \item Hur många jämförelser krävs med quicksort?
+      \item Hur många med den bästa metoden?
+    \end{enumerate}
+  \end{exercise}
+
+  \begin{solution}
+    \begin{itemize}
+      \item Quicksort (\(O(N\log N)\)).
+      \item \(N = 9\cdot 10^6\approx 2^{23}\implies 9\cdot 10^6\cdot 23 = 
+        207\cdot 10^6\).
+      \item Radixsortering är snabbare.
+    \end{itemize}
+  \end{solution}
+\end{frame}
+
+\begin{frame}
+  \begin{definition}[Radixsortering]
+    \begin{itemize}
+      \item Räkna ut längden på längsta talet, \(k\).
+      \item Använd räknesortering för att sortera efter sista siffran i talen.
+      \item Använd sedan räknesortering för att sortera efter näst sista.
+      \item Fortsätt tills alla siffror (\(k\) stycken) är genomgångna.
+    \end{itemize}
+  \end{definition}
+
+  \begin{solution}[Fortsättning, radixsortering]
+    \begin{itemize}
+      \item Gå igenom alla personnummer (\(k = 10\) siffror).
+      \item Dela upp i tio buntar efter sista siffran, lägg ihop.
+      \item Dela upp i tio nya buntar efter näst sista siffran, lägg ihop.
+      \item \dots
+      \item Detta ger \(10\cdot 9\cdot 10^6 = 90\cdot 10^6\).
+    \end{itemize}
+  \end{solution}
+\end{frame}
+
+\mode<all>{\endinput}
+
+\begin{frame}[fragile]
+  \begin{exercise}
+    \begin{itemize}
+      \item Nu när det blir mörkare om kvällarna känns det extra viktigt att ha 
+        lysen till cykeln.
+      \item Du har lagt in lamporna med priset som prioritet i en min-heap.
+      \item På vektorform ser heapen ut så här:
+        \begin{minted}{text}
+          10 40 30 42 41 48 50 49
+        \end{minted}
+    \end{itemize}
+    \begin{enumerate}
+      \item Rita upp heapen på trädform och visa sen hur det ser ut när man 
+        plockar ut två element (du vill ju inte köpa de allra billigaste).
+        Visa minst fem steg.
+      \item Skriv slutligen upp heapen på vektorform igen.
+    \end{enumerate}
+  \end{exercise}
+\end{frame}
