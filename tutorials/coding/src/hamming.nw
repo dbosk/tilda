@@ -1,0 +1,329 @@
+\documentclass[a4paper,swedish]{article}
+\usepackage{noweb}
+% Needed to relax penalty for breaking code chunks across pages, otherwise 
+% there might be a lot of space following a code chunk.
+\def\nwendcode{\endtrivlist \endgroup}
+\let\nwdocspar=\smallbreak
+
+\usepackage[hyphens]{url}
+\usepackage{hyperref}
+\usepackage{authblk}
+
+\input{preamble.tex}
+
+\title{%
+  Hammingavstånd och redundans
+}
+\author{%
+  Daniel Bosk
+}
+\affil{%
+  KTH EECS
+}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+  Vi undersöker hammingavstånd och redundans.
+\end{abstract}
+
+\tableofcontents
+\clearpage
+
+@
+\section{Problemet}
+
+Vi har en \(n\) bitar lång textsträng som vi vill överföra.
+Ibland uppstår fel i en av de \(n\) bitarna.
+Vi vill introducera redundans för att uppnå felkorrigering.
+Hur ska vi introducera denna redundans för att uppnå vårt mål?
+
+
+\section{Hammingavstånd}
+
+För att undersöka problemet behöver vi hammingmetriken~\cite{HammingMetric}, 
+även kallat hammingavstånd.
+Denna mäter avstånd mellan strängar.
+Vi kommer först att gå igenom de matematiska definitionerna och några resultat 
+(\cref{hamming-math}).
+Därefter implementerar vi funktioner för att beräkna dessa i Python 
+(\cref{hamming-python}).
+
+\subsection{Matematiska definitioner och resultat}\label{hamming-math}
+
+\begin{definition}[Hammingavstånd]\label{HammingDistance}
+  Vi säger att \emph{hammingavståndet} mellan två lika långa strängar \(s\) och 
+  \(s'\) är antalet symboler där de skiljer sig.
+  Vi betecknar hammingavståndet mellan \(s, s'\) som \(d_H(s, s')\).
+\end{definition}
+
+Vi kan säga en hel del om hammingavstånd, men vi ska börja med att säga 
+följande.
+\begin{lemma}\label{HamminDistanceParts}
+  Hammingavståndet~\(d_H(s, s')\) är summan av hammingavstånden mellan dess 
+  delar.
+\end{lemma}
+\begin{proof}
+  Låt \(s = s_0 + \dotsb + s_n\) och \(s' = s'_0 + \dotsb + s'_n\), där \(+\) 
+  betecknar sammanfogning och \(s_i\) respektive \(s'_i\) är strängar 
+  bestående av endast en symbol.
+  Vi har då enligt \cref{HammingDistance} att \(d_H(s_i, s'_i) = 0\) om \(s_i = 
+  s'_i\) och \(d_H(s_i, s'_i) = 1\) om \(s_i \neq s'_i\).
+  Genom induktion kan vi då visa att \(d_H(s, s') = d_H(s_0, s'_0) + \dotsb + 
+  d_H(s_n, s'_n)\).
+\end{proof}
+
+Vi vill också kunna uppskatta det minimala hammingavståndet mellan strängar i 
+en mängd.
+\begin{definition}[Minimala hammingavståndet]\label{MinimalHamming}
+  Låt \(M\) vara en mängd med strängar.
+  Vi säger att det \emph{mininala hammingavståndet i \(M\)}, eller bara 
+  \emph{hammingavståndet i \(M\)}, är \(\min(d_H(s, s'))\) för strängar~\(s, 
+  s'\in M\) sådana att \(s\neq s'\).
+\end{definition}
+
+Vi kan då konstatera följande.
+\begin{lemma}\label{MinDistanceSetNumbers}
+  Låt \(M = \{0, 1\}^n\) vara mängden med alla strängar av längden \(n\).
+  Då har vi att \(d_H(M) = 1\).
+\end{lemma}
+\begin{proof}
+  \(M\) innehåller strängen som består av \(n\) nollor.
+  \(M\) innehåller även strängen som består av \(n-1\) nollor och en etta.
+  Hammingavståndet mellan dessa är ett, då de bara skiljer i en position.
+  Detta är det minsta möjliga avståndet då \(d_H(s, s') = 0\) betyder att \(s = 
+  s'\) (vilket utsluts av \cref{MinimalHamming}).
+\end{proof}
+
+
+\subsection{Programfunktioner för hammingavstånd}\label{hamming-python}
+
+Vi vill skriva några funktioner i Python för att hjälpa oss att räkna på 
+hammingavstånd för att leda oss i vår utforskning.
+<<hamming.py>>=
+#!/usr/bin/env python3
+
+<<functions>>
+@
+
+
+\subsection{Beräkna hammingavstånd mellan två kodord}
+
+Det finns flera sätt att beräkna hammingavståndet på.
+Ett sätt är att använda [[scipy.spatial.distance.hamming]] från 
+SciPy-biblioteket.
+Den ger dock svaret normaliserat till intervallet \(\interval{0}{1}\).
+\begin{pyblock}
+import scipy.spatial.distance as distance
+
+print(f"hamming('000', '001') = {distance.hamming('000', '001')}")
+\end{pyblock}
+Vi får då
+\stdoutpythontex[verbatim]
+då den tolkar hela strängen som en symbol, istället för ett ord.
+\begin{pyblock}
+import scipy.spatial.distance as distance
+
+print(f"hamming([0, 0], [0, 1]) = {distance.hamming([0, 0], [0, 1])}")
+\end{pyblock}
+ger dock
+\stdoutpythontex[verbatim]
+som förväntat.
+
+Vi kommer istället att räkna antalet ställen där två kodord skiljer sig åt.
+Fördelen med denna version är att den blir likt \cref{HammingDistance}.
+
+Vi kommer att ta varje en symbol i respektive ord och jämföra dem.
+Vi kommer då att få en etta där de skiljer sig och en nolla där de inte skiljer 
+sig åt.
+Sedan summerar vi resultatet, vilket ger hammingavståndet.
+<<functions>>=
+def distance(word1, word2):
+  """Returns the Hamming distance between the words word1, word2"""
+  return sum(symbol1 != symbol2 for symbol1, symbol2 in zip(word1, word2))
+@
+
+Vi kan testa koden med följande:
+\begin{pyblock}
+import hamming
+
+print(f"distance('000', '001') = {hamming.distance('000', '001')}")
+print(f"distance('000', '111') = {hamming.distance('000', '111')}")
+\end{pyblock}
+Utmaningen blir följande:
+\stdoutpythontex[verbatim]
+
+
+\subsection{Beräkna minimala hammingavståndet mellan kodord}
+
+Vi vill nu beräkna det minimala hammingavståndet mellan en mängd kodord.
+
+För att underlätta skriver vi även en funktion som genererar alla möjliga ord 
+av en given längd givet de möjliga symbolerna.
+<<functions>>=
+def words(symbols, length):
+  """Returns a list of all strings symbols^{length} from set of symbols"""
+  words = symbols
+  for index in range(length-1):
+    new_words = []
+    for word in words:
+      for symbol in symbols:
+        new_words.append(word+symbol)
+    words = new_words
+  return words
+@
+
+Vi kan testa koden.
+\begin{pyblock}
+import hamming
+
+print(f"words('01', 3) = {hamming.words('01', 3)}")
+\end{pyblock}
+Och detta ger utmatningen:
+\stdoutpythontex[verbatim]
+
+Det maximala avståndet är att kodorden skiljer sig i varje symbol, d.v.s. 
+längden av ett kodord (alla kodord ska vara lika långa).
+Vi behöver bara jämföra kodord mot \enquote{framförvarande} kodord, då 
+bakomvarande redan jämförts.
+Och vi behöver inte jämföra ett kodord med sig självt.
+<<functions>>=
+def min_distance(words):
+  """Returns the smallest Hamming distance between any two words in the set"""
+  words = list(words)
+  min_dist = len(words[0])
+  for index, word1 in enumerate(words[:-1]):
+    for word2 in words[index+1:]:
+      dist = distance(word1, word2)
+      if dist < min_dist:
+        min_dist = dist
+  return min_dist
+@
+
+Vi kan testa koden med följande:
+\begin{pyblock}
+import hamming
+
+words = hamming.words("01", 3)
+print(f"min_distance({words}) = {hamming.min_distance(words)}")
+\end{pyblock}
+Utmaningen blir följande:
+\stdoutpythontex[verbatim]
+
+
+\section{Lösningen}
+
+Hur kan vi lösa detta?
+Vi kommer att göra detta matematiskt och verifiera att vi inte slarvat i varje 
+steg med hjälp av funktionerna (främst [[min_hamming]]) ovan.
+
+Meddelandena är \(n\) bitar långa, det ger oss \(2^n\) möjliga meddelanden, 
+detta ger oss följande.
+\begin{equation}
+2^n \begin{cases}
+  \smash{\overbrace{0 \dotsc 0}^{n}} \\
+  0 \dotsc 1 \\
+  \vdots \\
+  1 \dotsc 0 \\
+  1 \dotsc 1
+\end{cases}
+\end{equation}
+Vi vet från \cref{MinDistanceSetNumbers} att det minimala hammingavståndet för 
+denna mängd är ett.
+D.v.s. om vi flippar en bit så får vi ett annat giltigt kodord.
+För att lösa problemet behöver vi således utöka det minimala hammingavståndet.
+
+Istället för att ha ett antal ord av längden \(n\) bitar och lägga till 
+redundans, kommer vi nu att ta ord av längden \(n\) och ta bort tillräckligt 
+med ord för att få nog med redundans för felkorrigering.
+
+Vi kan skapa en uppsättning kodord genom att filtrera bort grannarna inom en 
+given radie.
+<<functions>>=
+def sieve(words, radius):
+  """Returns words with at least radius distance from each other"""
+  words = iter(words)
+  while (word := next(words, None)) is not None:
+    yield word
+    words = sieve_word(words, word, radius)
+
+def sieve_word(words, word, radius):
+  """Returns all words where distance to word > radius"""
+  for other_word in words:
+    if distance(word, other_word) > radius:
+      yield other_word
+@
+
+Vi kan testa på strängar med tre bitar.
+Om vi tar bort alla element inom en radie på ett, då kommer vi att få ett 
+minsta hammingavstånd på två.
+\begin{pyblock}
+import hamming
+
+words = hamming.words("01", 3)
+sieved = list(hamming.sieve(words, 1))
+
+print(f"sieve({words}, 1) = {sieved}")
+print(f"min_distance({sieved}) = {hamming.min_distance(sieved)}")
+\end{pyblock}
+Resultatet blir:
+\stdoutpythontex[verbatim]
+
+Om vi vill ha felkorrigering måste vi dock ha ett minimalt hammingavstånd på 
+tre.
+För att åstadkomma detta ser vi till att varje kodord har tomt omkring sig i en 
+radie på två.
+\begin{pyblock}
+import hamming
+
+words = hamming.words("01", 3)
+sieved = list(hamming.sieve(words, 2))
+
+print(f"sieve({words}) = {sieved}")
+print(f"min_distance({sieved}) = {hamming.min_distance(sieved)}")
+\end{pyblock}
+Resultatet blir:
+\stdoutpythontex[verbatim]
+
+Detta betyder alltså att vi kan koda ett binärt tal med felkorrigering med 
+hjälp av tre bitar långa strängar.
+\Citeauthor{HammingMetric}~\cite{HammingMetric} redogör mer detaljerat för 
+utformningen av dessa koder.
+
+Vi avslutar med en funktion där vi gör felkorrigeringen.
+För att kunna göra detta måste det minimala hammingavståndet för [[words]] vara 
+åtminstone tre.
+Då vet vi att om hammingavståndet är mindre än två, då är det korrekt.
+<<functions>>=
+def closest(word, words):
+  """Returns the real word closest to word in words.
+  Requirement: min_distance(words) >= 3"""
+  for real_word in words:
+    if distance(word, real_word) < 2:
+      return real_word
+  raise ValueError(f"{word} is not similar enough to {words}")
+@
+
+Vi kan testa att detektera ett felaktigt ord.
+\begin{pyblock}
+import hamming
+
+code_words = list(hamming.sieve(hamming.words("01", 3), 2))
+print(f"min_distance({code_words}) = {hamming.min_distance(code_words)}")
+
+print(f"closest('000', code_words) = {hamming.closest('000', code_words)}")
+print(f"closest('001', code_words) = {hamming.closest('001', code_words)}")
+print(f"closest('010', code_words) = {hamming.closest('010', code_words)}")
+print(f"closest('011', code_words) = {hamming.closest('011', code_words)}")
+print(f"closest('100', code_words) = {hamming.closest('100', code_words)}")
+print(f"closest('101', code_words) = {hamming.closest('101', code_words)}")
+print(f"closest('110', code_words) = {hamming.closest('110', code_words)}")
+print(f"closest('111', code_words) = {hamming.closest('111', code_words)}")
+\end{pyblock}
+Resultatet blir:
+\stdoutpythontex[verbatim]
+
+
+\printbibliography
+\end{document}
