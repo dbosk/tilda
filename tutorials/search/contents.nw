@@ -1,0 +1,203 @@
+\mode*
+
+\section{Rabin-Karp}
+
+Det vi vill göra är att söka efter en textsträng~[[search_term]] i en längre 
+textsträng~[[text]].
+Vi vill använda en implementation av Rabin-Karps algoritm för sökning, 
+[[rk_search]].
+Denna ska returnera index där strängen börjar.
+\begin{frame}[fragile]
+<<rk.py>>=
+<<definition Rabin-Karp search function>>
+
+def main():
+  text = "TEMAT ÄR TELETEMA"
+
+  for term in ["TEMA", "TEMATISK", "TELETEMA"]:
+    try:
+      print(f"{term} is in {text} at position {rk_search(term, text)}")
+    except IndexError as err:
+      print(err)
+
+if __name__ == "__main__":
+  main()
+@
+\end{frame}
+
+Om vi kör koden
+\begin{pyblock}
+import rk
+rk.main()
+\end{pyblock}
+kommer vi att få följande resultat:
+\begin{frame}[fragile]
+\stdoutpythontex[verbatim]
+\end{frame}
+
+\subsection{Sökning med Rabin-Karps algoritm}
+
+Hur ser då Rabin-Karps algoritm~\cite{RabinKarpSearch} ut?
+Vi behöver en hashfunktion, och gärna en rullande sådan.
+En rullande hashfunktion har en speciell egenskap.
+Låt oss säga att vi har en sträng~\[
+  s_{[1, n]} = s_1s_2\dotsb s_n
+\] av längd \(n\), där varje \(s_i\) är en bokstav.
+Vi kan beräkna hashvärdet~\[
+  h_i = h(s_{[i, i+m]})
+\] för en delsträng~\(
+  s_{[i, i+m]}
+\) av längd \(m\) med tidskomplexitet \(O(m)\).
+Om \(h\) är rullande kan vi beräkna \[
+  h_{i+1} = h(s_{[i+1, i+m+1]})
+\] med tidskomplexitet \(O(1)\) med hjälp av \[
+  h_i,\qquad s_i\qquad \text{och}\qquad s_{i+m+1}.
+\]
+
+This leaves us with the following Python functions.
+\begin{frame}[fragile]
+<<definition Rabin-Karp search function>>=
+def rk_hash(text):
+  """Computes hash value for text"""
+  <<compute hash of text>>
+
+def rk_hash_next(prev_symbol, prev_hash, next_symbol):
+  """Computes rk_hash for the next string, by removing prev_symbol and adding 
+  next_symbol."""
+  <<compute the next hash from the previous>>
+
+def rk_search(term, text):
+  """Returns index of first occurence of term in text"""
+  <<perform Rabin-Karp search for term in text>>
+@
+\end{frame}
+
+Låt oss titta på hur dessa bör se ut.
+Vi börjar med att spara undan längderna av strängarna, annars är kostnaden 
+\(O(m)\) respektive \(O(n)\).
+Om vi inte hittar strängen vi letar efter så kastar vi ett särfall.
+\begin{frame}[fragile]
+<<perform Rabin-Karp search for term in text>>=
+term_length = len(term) # m
+text_length = len(text) # n
+
+<<compute the initial hashes>>
+<<compute the next hash for every substring, check if match>>
+
+raise IndexError(f"{term} not found in {text}")
+@
+\end{frame}
+
+Vi behöver beräkna hasharna för söktermen och den första delsträngen.
+Båda dessa kräver \(O(m)\) i komplexitet.
+Dessutom kopierar vi en sträng genom Pythons slicing ([[text[0:term_length]]]), 
+denna operation kräver också \(O(m)\).
+När vi har beräknat hasharna kan vi kolla om de är lika, det kan ju hända att 
+strängen vi söker efter är den första delsträngen.
+\begin{frame}[fragile]
+<<compute the initial hashes>>=
+# O(m)
+target_hash = rk_hash(term)
+
+# O(m)
+subtext = text[0:term_length]
+# O(m)
+subtext_hash = rk_hash(subtext)
+
+if subtext_hash == target_hash and term == text[0:term_length]:
+  return 0
+@
+\end{frame}
+
+Sedan måste vi söka igenom texten.
+Detta ger en tidskomplexitet på \(O(n)\), för vi måste gå igenom hela 
+textsträngen tecken för tecken.
+Här använder vi egenskapen att hashfunktionen är rullande ([[rk_hash_next]]), 
+detta ger oss att vi kan beräkna hashen i \(O(1)\).
+\begin{frame}[fragile]
+<<compute the next hash for every substring, check if match>>=
+# O(n)
+for i in range(1, text_length-(term_length-1)):
+  # O(1)
+  subtext_hash = rk_hash_next(text[i-1], subtext_hash, text[i+term_length-1])
+  # O(1) and O(m)
+  if subtext_hash == target_hash and term == text[i:i+term_length]:
+    return i
+@
+\end{frame}
+Om vi istället hade använt [[rk_hash]], då hade vi fått \(O(m)\) för 
+\emph{varje varv}.
+Det hade resulterat i \(O(nm)\) totalt, men tack vare rullningen får vi 
+\(O(n\cdot 1)\) istället.
+
+Om vi tittar på [[if]]-satsen ser vi att vi har ytterligare en \(O(m)\) 
+operation, jämförelsen av två textsträngar.
+Men denna operation genomförs endast i de fall hashvärdena är lika.
+Så med en dålig hashfunktion (eller beroende på söksträngen och texten) händer 
+det ofta (närmare \(O(nm)\) totalt), med en bättre hashfunktion händer det mer 
+sällan (närmare \(O(n+m)\) totalt).
+
+Om vi tittar på det hela taget, då får vi \(O(3m)\) från
+[[<<compute the initial hashes>>]] och \(O(n+m)\) eller \(O(nm)\) från
+[[<<compute the next hash for every substring, check if match>>]].
+Sammantaget blir det alltså \(O(3m+n+m) = O(m+n)\) eller \(O(3m+nm) = O(nm)\).
+
+\subsection{Rullande hashning}
+
+Hur kan vi då implementera rullande hashning och åstadkomma \(O(1)\)?
+För att göra detta bra krävs en del algebraiska egenskaper.
+Ett exempel på en sådan metod är Rabins 
+fingeravtrycksalgoritm~\cite{RabinFingerprinting}.
+Vi ska dock använda en enklare rullande hashfunktion.
+
+Vår enkla algoritm går ut på att bara summera symbolerna: \[
+  \sum_{x \in [i, i+m]} s_x.
+\]
+Vi ser att denna kräver \(O(m)\) i komplexitet.
+\begin{frame}[fragile]
+<<compute hash of text>>=
+return sum(ord(symbol) for symbol in text)
+@
+\end{frame}
+Tack vare kommutativiteten hos addition av heltal kommer vi att få många 
+kollisioner, exempelvis
+\begin{pyblock}
+import rk
+
+print(f"rk_hash(TEST) = {rk.rk_hash('TEST')}")
+print(f"rk_hash(ESTT) = {rk.rk_hash('ESTT')}")
+\end{pyblock}
+ger en kollision:
+\begin{frame}[fragile]
+\stdoutpythontex[verbatim]
+\end{frame}
+Denna hashfunktion kommer med andra ord göra att vår Rabin--Karp-sökning inte 
+blir optimal (\(O(n+m)\)), men ändå inte nödvändigtvis så dålig som värsta 
+fallet (\(O(nm)\)).
+
+När vi nu vill beräkna nästkommande hashvärde, kan vi göra det enkelt.
+Vi har att hashvärdena för \(s_{[i, i+m]}\) och \(s_{[i+1, i+1+m]}\) skiljer 
+sig med termerna \(s_i\) och \(s_{i+1+m}\).
+Tack vare att addition är kommutativ (och associativ), kan vi bara dra bort den 
+ena och lägga till den andra.
+Detta är en konstant operation, helt oberoende av \(m\).
+\begin{frame}[fragile]
+<<compute the next hash from the previous>>=
+return prev_hash - ord(prev_symbol) + ord(next_symbol)
+@
+\end{frame}
+
+Vi kan testa dessa funktioner med följande kod.
+\begin{pyblock}
+import rk
+
+test_hash = rk.rk_hash('TEST')
+print(f"rk_hash(TEST) = {test_hash}")
+print(f"rk_hash(ESTA) = {rk.rk_hash('ESTA')}")
+next_hash = rk.rk_hash_next('T', test_hash, 'A')
+print(f"rk_hash_next('T', {test_hash}, 'A') = {next_hash}")
+\end{pyblock}
+Det ger följande resultat.
+\begin{frame}[fragile]
+\stdoutpythontex[verbatim]
+\end{frame}
