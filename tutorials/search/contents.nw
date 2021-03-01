@@ -201,3 +201,64 @@ Det ger följande resultat.
 \begin{frame}[fragile]
 \stdoutpythontex[verbatim]
 \end{frame}
+
+
+\section{Boyer-Moore}
+
+Idéen bakom Boyer-Moores algoritmen är att göra större hopp igenom texten än med en brute-force metod genom att jämföra den sökta textsträngen~[[pattern]] med en lämgre textsträng~[[text]] från höger till vänster. Ett viktigt steg i metoden är att bestämma en KMP-automat innan vi börjar för att kunna avgöra i \(O(1)\) det största steget framåt vi får ta vid en missmatch. Detta preprocessing kan optimeras så mycket så att vi får en tidskomplexitet av \(O(n)\) för hela sökningen i värsta fallet. Vi kan här dock fokusera på den ursprungliga implementationen~\cite{BoyerMoore} och låta den nyfikna läsaren undersöka~cite{GalilRule} och~\cite{ApostolicoGiancarlo}.
+
+\subsection{Sökning med Boyer-Moores algoritm}
+
+Vi behöver först analysera den sökta strängen och bestämma automaten och speciellt sin \(next\)-array representation. Tänk att vi letar efter strängen "TEMATISK" i texten "TEMAT ÄR TELETEMA". Vid första jämförelsen kommer K:et från "TEMATISK" att jämföras med R:et i texten. Eftersom det inte finns något R i den sökta strängen - det har vi kodat i automaten - kan vi direkt hoppa över 8 tecken.
+
+Mer konkret vill vi en integer array lika lång som alfabetet vi jobbar med, där ett element har värdet -1 om motsvarande tecken i alfabetet inte finns i den sökta strängen, eller indexen till det första tillfället av samma bokstav i strängen från höger.
+\begin{frame}[fragile]
+<<bm.py>>=
+class BoyerMoore:
+  """definiera en metod för att söka för en specifik sträng i vilken text som helst."""
+  ALFABET_SIZE = 26
+  ALFABET = "abcdefghijklmnopqrstuvwxyzåäö"
+
+  def __init__(self, pattern):
+    """BoyerMoore instansen är beroende av den sökta strängen"
+    <<preprocessing pattern>>
+
+  def search(self, text):
+    """Letar efter self.pattern i text"
+    <<använder next-array för att göra så stora hopp som möjligt>>
+@
+\end{frame}
+
+Ni har säkert märkt att vi använder en \(pattern\) instans variabel. Låt oss se i detalj vad som händer inom konstruktorn.
+
+\begin{frame}[fragile]
+<<preprocessing pattern>>
+self.pattern = pattern
+self.next = [-1]*ALFABET_SIZE # initierar med -1
+for i, alfa in enumerate(pattern):
+  self.next[ord(alfa) - ord(ALFABET[0])] = i
+# tecken som finns i pattern mappas till index av första tillfället från höger
+@
+\end{frame}
+
+I vår enkel implementering inspirerad från~\cite{Sedgewick} måste vi fortfarande kolla på ett speciellfall. Om första tillfället av bokstaven vid en mismatch befinner sig till höger till mismatcha tecknet tillåter vi inte en hopp åt fel hålet. Då ska vi istället skifta mönstret ett steg till höger. Notera att detta kan vi behandla på samma sätt som tecken som inte finns i pattern, eftersom allt initierades med -1.
+
+\begin{frame}[fragile]
+<<använder next-array för att göra så stora hopp som möjligt>>
+n = len(text)
+m = len(self.pattern)
+i = 0
+while i <= n-m:
+  hopp = 0
+  for j, alfa in reversed(list(enumerate(self.pattern))): # jämför från höger
+    if self.pattern[j] != text[i+j]:
+      hopp = j - self.next[ord(text[i+j])]
+      if hopp < 1:
+        hopp = 1
+        break
+  if hopp == 0:
+    return i # hittade strängen
+  i += hopp
+return n # strängen finns inte i texten
+@
+\end{frame}
