@@ -213,7 +213,7 @@ metoden är att bestämma en KMP-automat innan vi börjar för att kunna avgöra
 preprocessing kan optimeras så mycket så att vi får en tidskomplexitet av 
 \(O(n)\) för hela sökningen i värsta fallet. Vi kan här dock fokusera på den 
 ursprungliga implementationen~\cite{BoyerMoore} och låta den nyfikna läsaren 
-undersöka~\cite{GalilRule} och~\cite{AposolicoGiancarlo}.
+undersöka~\cite{GalilRule} och~\cite{ApostolicoGiancarlo}.
 
 Vi behöver först analysera den sökta strängen och bestämma automaten och 
 speciellt sin \(next\)-array representation. Tänk att vi letar efter strängen 
