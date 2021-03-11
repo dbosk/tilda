@@ -1,6 +1,6 @@
 \mode*
 
-\section{Rabin-Karp}
+\section{Rabin--Karp}
 
 Det vi vill göra är att söka efter en textsträng~[[search_term]] i en längre 
 textsträng~[[text]].
@@ -203,62 +203,146 @@ Det ger följande resultat.
 \end{frame}
 
 
-\section{Boyer-Moore}
+\section{Boyer--Moore}
 
-Idéen bakom Boyer-Moores algoritmen är att göra större hopp igenom texten än med en brute-force metod genom att jämföra den sökta textsträngen~[[pattern]] med en lämgre textsträng~[[text]] från höger till vänster. Ett viktigt steg i metoden är att bestämma en KMP-automat innan vi börjar för att kunna avgöra i \(O(1)\) det största steget framåt vi får ta vid en missmatch. Detta preprocessing kan optimeras så mycket så att vi får en tidskomplexitet av \(O(n)\) för hela sökningen i värsta fallet. Vi kan här dock fokusera på den ursprungliga implementationen~\cite{BoyerMoore} och låta den nyfikna läsaren undersöka~cite{GalilRule} och~\cite{ApostolicoGiancarlo}.
+Idéen bakom Boyer-Moores algoritmen är att göra större hopp igenom texten än 
+med en brute-force metod genom att jämföra den sökta textsträngen~[[pattern]] 
+med en lämgre textsträng~[[text]] från höger till vänster. Ett viktigt steg i 
+metoden är att bestämma en KMP-automat innan vi börjar för att kunna avgöra i 
+\(O(1)\) det största steget framåt vi får ta vid en missmatch. Detta 
+preprocessing kan optimeras så mycket så att vi får en tidskomplexitet av 
+\(O(n)\) för hela sökningen i värsta fallet. Vi kan här dock fokusera på den 
+ursprungliga implementationen~\cite{BoyerMoore} och låta den nyfikna läsaren 
+undersöka~\cite{GalilRule} och~\cite{AposolicoGiancarlo}.
 
-\subsection{Sökning med Boyer-Moores algoritm}
+Vi behöver först analysera den sökta strängen och bestämma automaten och 
+speciellt sin \(next\)-array representation. Tänk att vi letar efter strängen 
+\enquote{TEMATISK} i texten \enquote{TEMAT ÄR TELETEMA}. Vid första jämförelsen 
+kommer K:et från \enquote{TEMATISK} att jämföras med R:et i texten. Eftersom 
+det inte finns något R i den sökta strängen --- det har vi kodat i automaten 
+--- kan vi direkt hoppa över åtta tecken (längden på söksträngen).
 
-Vi behöver först analysera den sökta strängen och bestämma automaten och speciellt sin \(next\)-array representation. Tänk att vi letar efter strängen "TEMATISK" i texten "TEMAT ÄR TELETEMA". Vid första jämförelsen kommer K:et från "TEMATISK" att jämföras med R:et i texten. Eftersom det inte finns något R i den sökta strängen - det har vi kodat i automaten - kan vi direkt hoppa över 8 tecken.
-
-Mer konkret vill vi en integer array lika lång som alfabetet vi jobbar med, där ett element har värdet -1 om motsvarande tecken i alfabetet inte finns i den sökta strängen, eller indexen till det första tillfället av samma bokstav i strängen från höger.
+Med tanke på att vi behöver anpassa oss efter söktermen är det lämpligt att vi 
+har följande klasstruktur.
 \begin{frame}[fragile]
 <<bm.py>>=
 class BoyerMoore:
   """definiera en metod för att söka för en specifik sträng i vilken text som helst."""
-  ALFABET_SIZE = 26
-  ALFABET = "abcdefghijklmnopqrstuvwxyzåäö"
-
   def __init__(self, pattern):
-    """BoyerMoore instansen är beroende av den sökta strängen"
+    """BoyerMoore instansen är beroende av den sökta strängen"""
     <<preprocessing pattern>>
 
-  def search(self, text):
-    """Letar efter self.pattern i text"
+  def search_in(self, text):
+    """Letar efter self.pattern i text"""
     <<använder next-array för att göra så stora hopp som möjligt>>
 @
 \end{frame}
 
-Ni har säkert märkt att vi använder en \(pattern\) instans variabel. Låt oss se i detalj vad som händer inom konstruktorn.
+\subsection{Initiering av Boyer--Moore}
 
+Mer konkret vill vi ha en heltalsvektor lika lång som alfabetet vi jobbar med, 
+där ett element har värdet -1 om motsvarande tecken i alfabetet inte finns i 
+den sökta strängen, eller indexen till det första tillfället av samma bokstav i 
+strängen från höger (eftersom att vi börjar i slutet av orden).
+Låt oss se i detalj vad som händer inom konstruktorn.
+Tecken som finns i [[pattern]] mappas till index av första tillfället från 
+höger.
 \begin{frame}[fragile]
-<<preprocessing pattern>>
+<<preprocessing pattern>>=
+alphabet_size = 256 # antagande: extended ASCII
+
 self.pattern = pattern
-self.next = [-1]*ALFABET_SIZE # initierar med -1
+
+self.next = [-1]*alphabet_size # initierar med -1
+# O(m)
 for i, alfa in enumerate(pattern):
-  self.next[ord(alfa) - ord(ALFABET[0])] = i
-# tecken som finns i pattern mappas till index av första tillfället från höger
+  self.next[ord(alfa)] = i
 @
 \end{frame}
-
-I vår enkel implementering inspirerad från~\cite{Sedgewick} måste vi fortfarande kolla på ett speciellfall. Om första tillfället av bokstaven vid en mismatch befinner sig till höger till mismatcha tecknet tillåter vi inte en hopp åt fel hålet. Då ska vi istället skifta mönstret ett steg till höger. Notera att detta kan vi behandla på samma sätt som tecken som inte finns i pattern, eftersom allt initierades med -1.
-
+(Detta betyder att komplexiteten för detta blir \(O(m)\), då vi måste gå igenom 
+hela söksträngen av längd \(m\).)
 \begin{frame}[fragile]
-<<använder next-array för att göra så stora hopp som möjligt>>
+Vi kan undersöka next-vektorn för ett exempel.
+\begin{pyblock}
+import bm
+
+search_obj = bm.BoyerMoore("TEMATISK")
+
+for character, next in enumerate(search_obj.next):
+  if next != -1:
+    print(f"{chr(character)}: {next}", end="    ")
+\end{pyblock}
+Utmatningen blir följande:
+\stdoutpythontex[verbatim]
+\end{frame}
+
+\subsection{Sökning med Boyer--Moore}
+
+I vår enkla implementation, inspirerad från~\cite{Sedgewick}, måste vi 
+fortfarande kolla på ett specialfall. Om första förekomsten av bokstaven vid en 
+felmatchning befinner sig till höger om det felmatchade tecknet tillåter vi 
+inte en hopp åt fel håll. Då ska vi istället skifta mönstret ett steg till 
+höger. Notera att detta kan vi behandla på samma sätt som tecken som inte finns 
+i [[pattern]], eftersom allt initierades med -1.
+\begin{frame}[fragile]
+<<använder next-array för att göra så stora hopp som möjligt>>=
 n = len(text)
 m = len(self.pattern)
+
 i = 0
+# börja från vänster, stanna lagom långt innan slutet
+# O(n-m)
 while i <= n-m:
-  hopp = 0
-  for j, alfa in reversed(list(enumerate(self.pattern))): # jämför från höger
+  jump = 0
+  # jämför från höger
+  # O(1) till O(m) beroende på data
+  for j in range(m-1, 0, -1):
     if self.pattern[j] != text[i+j]:
-      hopp = j - self.next[ord(text[i+j])]
-      if hopp < 1:
-        hopp = 1
+      # O(1)
+      jump = j - self.next[ord(text[i+j])]
+      if jump < 1:
+        jump = 1
         break
-  if hopp == 0:
+
+  if jump == 0:
     return i # hittade strängen
-  i += hopp
-return n # strängen finns inte i texten
+  i += jump
+
+raise IndexError(f"{self.pattern} not in {text}")
 @
+\end{frame}
+Notera att \(j = m-1\) vid början.
+Om vi inte hittar någon matchning, då kommer vi att hoppa \(m\) steg eftersom 
+att \(j-(-1) = (m-1)-(-1)\) då blir \(m\).
+Därför sätter vi \(-1\) på alla bokstäver som inte finns i vår sökterm.
+
+Vad blir då komplexiteten?
+Vi har en iteration ([[while]]-satsen) som går \(O(n-m)\).
+För varje sådan iteration har vi [[for]]-satsen.
+I de flesta fall jämför denna sista bokstaven (\(O(1)\)),
+kollar [[next]]-vektorn (\(O(1)\)),
+hoppar framåt (går till nästa varv i [[while]]-satsen).
+Det är bara i de fall som vi har matchningar som denna [[for]]-sats kommer att 
+bli mellan \(O(1)\) och \(O(m)\).
+Men vi får åtminstone en \(O(m)\) för denna [[for]]-sats, nämligen när vi får 
+en fullträff på sökordet.
+Om vi inte får några felmatchningar får vi då \(O(n-m+m)\), d.v.s. \(O(n)\).
+Får vi däremot delvisa matchningar hela tiden, då får vi \(O(nm)\).
+
+\begin{frame}[fragile]
+Vi kan testa att denna algoritm funkar på vårt exempel.
+\begin{pyblock}
+import bm
+
+text = "TEMAT ÄR TELETEMA"
+
+for term in ["TEMA", "TEMATISK", "TELETEMA"]:
+  term_obj = bm.BoyerMoore(term)
+  try:
+    print(f"{term} finns på plats {term_obj.search_in(text)}")
+  except IndexError as err:
+    print(err)
+\end{pyblock}
+Utmatningen blir följande:
+\stdoutpythontex[verbatim]
 \end{frame}
