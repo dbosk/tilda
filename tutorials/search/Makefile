@@ -6,7 +6,7 @@ LATEXFLAGS+=	-shell-escape
 SRC+=		preamble.tex
 SRC+=		abstract.tex contents.tex
 SRC+=		bibliography.bib
-SRC+=		rk.py
+SRC+=		rk.py bm.py
 
 contents.tex: contents.nw
 
@@ -22,9 +22,9 @@ ltxobj/%.pytxmcr::
 
 
 .PHONY:
-all: rk.py
+all: rk.py bm.py
 
-rk.py: contents.nw
+rk.py bm.py: contents.nw
 	${NOTANGLE}
 
 
@@ -32,7 +32,7 @@ rk.py: contents.nw
 clean:
 	${RM} notes.pdf slides.pdf
 	${RM} contents.tex
-	${RM} rk.py
+	${RM} rk.py bm.py
 
 
 INCLUDE_MAKEFILES=../../makefiles
