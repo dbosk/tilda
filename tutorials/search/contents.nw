@@ -227,16 +227,19 @@ har följande klasstruktur.
 \begin{frame}[fragile]
 <<bm.py>>=
 class BoyerMoore:
-  """definiera en metod för att söka för en specifik sträng i vilken text som helst."""
+  """Object to use for searching for a specific term in varying texts"""
   def __init__(self, pattern):
-    """BoyerMoore instansen är beroende av den sökta strängen"""
+    """We construct the object for the term to search for, pattern"""
     <<preprocessing pattern>>
 
   def search_in(self, text):
-    """Letar efter self.pattern i text"""
-    <<använder next-array för att göra så stora hopp som möjligt>>
+    """Search through text for the pattern used in the constructor"""
+    <<use next-array to make as big jumps as possible>>
 @
 \end{frame}
+Detta betyder att vi kan återanvända sökobjektet för att söka efter samma term 
+i flera olika texter.
+    
 
 \subsection{Initiering av Boyer--Moore}
 
@@ -249,11 +252,11 @@ Tecken som finns i [[pattern]] mappas till index av första tillfället från
 höger.
 \begin{frame}[fragile]
 <<preprocessing pattern>>=
-alphabet_size = 256 # antagande: extended ASCII
+alphabet_size = 256 # assumption: extended ASCII only
 
 self.pattern = pattern
 
-self.next = [-1]*alphabet_size # initierar med -1
+self.next = [-1]*alphabet_size # initialize all to -1
 # O(m)
 for i, alfa in enumerate(pattern):
   self.next[ord(alfa)] = i
@@ -285,17 +288,17 @@ inte en hopp åt fel håll. Då ska vi istället skifta mönstret ett steg till
 höger. Notera att detta kan vi behandla på samma sätt som tecken som inte finns 
 i [[pattern]], eftersom allt initierades med -1.
 \begin{frame}[fragile]
-<<använder next-array för att göra så stora hopp som möjligt>>=
+<<use next-array to make as big jumps as possible>>=
 n = len(text)
 m = len(self.pattern)
 
 i = 0
-# börja från vänster, stanna lagom långt innan slutet
+# start from left (beginning), stop suitably before the end
 # O(n-m)
 while i <= n-m:
   jump = 0
-  # jämför från höger
-  # O(1) till O(m) beroende på data
+  # start comparing from the right (end)
+  # O(1) to O(m) depending on data
   for j in range(m-1, 0, -1):
     if self.pattern[j] != text[i+j]:
       # O(1)
@@ -339,7 +342,7 @@ text = "TEMAT ÄR TELETEMA"
 for term in ["TEMA", "TEMATISK", "TELETEMA"]:
   term_obj = bm.BoyerMoore(term)
   try:
-    print(f"{term} finns på plats {term_obj.search_in(text)}")
+    print(f"{term} is in {text} at position {term_obj.search_in(text)}")
   except IndexError as err:
     print(err)
 \end{pyblock}
